@@ -1,0 +1,270 @@
+{% extends "base.html" %}
+
+{% block title %}Kurs yaratish - Online Ta'lim Platformasi{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h1 class="text-3xl font-bold text-gray-900 mb-6">Yangi kurs yaratish</h1>
+            
+            <form action="{{ url_for('create_course') }}" method="POST" enctype="multipart/form-data" data-validate>
+                <!-- Course Basic Info -->
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label for="title" class="block text-sm font-medium text-gray-700 mb-2">
+                            Kurs nomi *
+                        </label>
+                        <input type="text" id="title" name="title" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="Kurs nomini kiriting">
+                    </div>
+                    
+                    <div>
+                        <label for="category" class="block text-sm font-medium text-gray-700 mb-2">
+                            Kategoriya *
+                        </label>
+                        <select id="category" name="category" required
+                                class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="">Kategoriyani tanlang</option>
+                            <option value="Dasturlash">Dasturlash</option>
+                            <option value="Dizayn">Dizayn</option>
+                            <option value="Marketing">Marketing</option>
+                            <option value="Biznes">Biznes</option>
+                            <option value="Til o'rganish">Til o'rganish</option>
+                            <option value="Matematika">Matematika</option>
+                            <option value="Musiqa">Musiqa</option>
+                            <option value="Boshqa">Boshqa</option>
+                        </select>
+                    </div>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-6">
+                    <div>
+                        <label for="price" class="block text-sm font-medium text-gray-700 mb-2">
+                            Narxi (so'm) *
+                        </label>
+                        <input type="number" id="price" name="price" required min="0" step="1000"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="0 - bepul kurs uchun">
+                    </div>
+                    
+                    <div>
+                        <label for="course_image" class="block text-sm font-medium text-gray-700 mb-2">
+                            Kurs rasmi
+                        </label>
+                        <input type="file" id="course_image" name="course_image" accept="image/*"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                    </div>
+                </div>
+                
+                <div class="mb-6">
+                    <label for="description" class="block text-sm font-medium text-gray-700 mb-2">
+                        Kurs tavsifi *
+                    </label>
+                    <textarea id="description" name="description" rows="4" required
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              placeholder="Kurs haqida batafsil ma'lumot bering..."></textarea>
+                </div>
+                
+                <!-- Lessons Section -->
+                <div class="mb-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <h2 class="text-xl font-semibold text-gray-900">Darslar</h2>
+                        <button type="button" id="add-lesson-btn" 
+                                class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                            <i class="fas fa-plus mr-2"></i>Dars qo'shish
+                        </button>
+                    </div>
+                    
+                    <div id="lessons-container">
+                        <!-- Lessons will be added here dynamically -->
+                    </div>
+                    
+                    <input type="hidden" name="lesson_count" value="0">
+                </div>
+                
+                <!-- Submit Button -->
+                <div class="flex items-center justify-end space-x-4">
+                    <a href="{{ url_for('dashboard') }}" 
+                       class="bg-gray-500 text-white px-6 py-2 rounded-lg hover:bg-gray-600 transition-colors">
+                        <i class="fas fa-times mr-2"></i>Bekor qilish
+                    </a>
+                    <button type="submit" 
+                            class="bg-blue-600 text-white px-6 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-save mr-2"></i>Kursni saqlash
+                    </button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    const addLessonBtn = document.getElementById('add-lesson-btn');
+    const lessonsContainer = document.getElementById('lessons-container');
+    const lessonCountInput = document.querySelector('input[name="lesson_count"]');
+    
+    let lessonCount = 0;
+    
+    // Add first lesson automatically
+    addLesson();
+    
+    addLessonBtn.addEventListener('click', function() {
+        addLesson();
+    });
+    
+    function addLesson() {
+        const lessonHTML = `
+            <div class="lesson-item bg-gray-50 p-6 rounded-lg mb-4 border-2 border-dashed border-gray-200">
+                <div class="flex items-center justify-between mb-4">
+                    <h3 class="text-lg font-semibold text-gray-900">Dars ${lessonCount + 1}</h3>
+                    <button type="button" class="remove-lesson-btn bg-red-500 text-white px-3 py-1 rounded hover:bg-red-600 transition-colors">
+                        <i class="fas fa-trash"></i>
+                    </button>
+                </div>
+                
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Dars nomi *
+                        </label>
+                        <input type="text" name="lesson_title_${lessonCount}" required
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                               placeholder="Dars nomini kiriting">
+                    </div>
+                    
+                    <div>
+                        <label class="block text-sm font-medium text-gray-700 mb-2">
+                            Dars videosi
+                        </label>
+                        <input type="file" name="lesson_video_${lessonCount}" accept="video/*"
+                               class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500">
+                        <p class="text-xs text-gray-500 mt-1">MP4, AVI, MOV, WMV, FLV, WebM, MKV formatida, max 100MB</p>
+                    </div>
+                </div>
+                
+                <div class="mb-4">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">
+                        Dars matni *
+                    </label>
+                    <textarea name="lesson_content_${lessonCount}" rows="4" required
+                              class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
+                              placeholder="Dars matnini kiriting..."></textarea>
+                </div>
+                
+                <div class="video-preview-${lessonCount}" style="display: none;">
+                    <label class="block text-sm font-medium text-gray-700 mb-2">Video oldindan ko'rish</label>
+                    <div class="video-container"></div>
+                </div>
+            </div>
+        `;
+        
+        lessonsContainer.insertAdjacentHTML('beforeend', lessonHTML);
+        
+        // Add event listeners for the new lesson
+        const newLessonItem = lessonsContainer.lastElementChild;
+        const removeBtn = newLessonItem.querySelector('.remove-lesson-btn');
+        const videoInput = newLessonItem.querySelector(`input[name="lesson_video_${lessonCount}"]`);
+        
+        removeBtn.addEventListener('click', function() {
+            removeLesson(newLessonItem);
+        });
+        
+        videoInput.addEventListener('change', function(e) {
+            previewVideo(e.target, lessonCount);
+        });
+        
+        lessonCount++;
+        lessonCountInput.value = lessonCount;
+    }
+    
+    function removeLesson(lessonItem) {
+        lessonItem.remove();
+        lessonCount--;
+        lessonCountInput.value = lessonCount;
+        
+        // Renumber remaining lessons
+        const remainingLessons = lessonsContainer.querySelectorAll('.lesson-item h3');
+        remainingLessons.forEach((title, index) => {
+            title.textContent = `Dars ${index + 1}`;
+        });
+    }
+    
+    function previewVideo(input, lessonIndex) {
+        const file = input.files[0];
+        if (!file) return;
+        
+        const previewContainer = document.querySelector(`.video-preview-${lessonIndex}`);
+        const videoContainer = previewContainer.querySelector('.video-container');
+        
+        // Check file type
+        if (!file.type.startsWith('video/')) {
+            alert('Faqat video fayllar qabul qilinadi!');
+            input.value = '';
+            return;
+        }
+        
+        // Check file size (max 100MB)
+        if (file.size > 100 * 1024 * 1024) {
+            alert('Video fayl hajmi 100MB dan oshmasligi kerak!');
+            input.value = '';
+            return;
+        }
+        
+        const reader = new FileReader();
+        reader.onload = function(e) {
+            videoContainer.innerHTML = `
+                <video controls class="w-full max-w-md rounded-lg shadow-md">
+                    <source src="${e.target.result}" type="${file.type}">
+                    Brauzeringiz video playbackni qo'llab-quvvatlamaydi.
+                </video>
+                <div class="mt-2 text-sm text-gray-600">
+                    <p><strong>Fayl:</strong> ${file.name}</p>
+                    <p><strong>Hajmi:</strong> ${formatFileSize(file.size)}</p>
+                    <p><strong>Turi:</strong> ${file.type}</p>
+                </div>
+            `;
+            previewContainer.style.display = 'block';
+        };
+        reader.readAsDataURL(file);
+    }
+    
+    function formatFileSize(bytes) {
+        if (bytes === 0) return '0 Bytes';
+        const k = 1024;
+        const sizes = ['Bytes', 'KB', 'MB', 'GB'];
+        const i = Math.floor(Math.log(bytes) / Math.log(k));
+        return parseFloat((bytes / Math.pow(k, i)).toFixed(2)) + ' ' + sizes[i];
+    }
+    
+    // Form validation
+    document.querySelector('form').addEventListener('submit', function(e) {
+        if (lessonCount === 0) {
+            e.preventDefault();
+            alert('Kamida bitta dars qo\'shishingiz kerak!');
+            return;
+        }
+        
+        // Check if all required fields are filled
+        const requiredFields = document.querySelectorAll('input[required], textarea[required], select[required]');
+        let isValid = true;
+        
+        requiredFields.forEach(field => {
+            if (!field.value.trim()) {
+                field.classList.add('border-red-500');
+                isValid = false;
+            } else {
+                field.classList.remove('border-red-500');
+            }
+        });
+        
+        if (!isValid) {
+            e.preventDefault();
+            alert('Barcha majburiy maydonlarni to\'ldiring!');
+        }
+    });
+});
+</script>
+{% endblock %}

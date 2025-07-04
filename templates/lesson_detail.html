@@ -1,0 +1,220 @@
+{% extends "base.html" %}
+
+{% block title %}{{ lesson.title }} - {{ course.title }}{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-4 gap-8">
+        <!-- Main Lesson Content -->
+        <div class="lg:col-span-3">
+            <!-- Lesson Header -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <div class="flex items-center justify-between mb-4">
+                    <a href="{{ url_for('course_detail', course_id=course.id) }}" 
+                       class="text-blue-600 hover:text-blue-800 flex items-center">
+                        <i class="fas fa-arrow-left mr-2"></i>{{ course.title }}
+                    </a>
+                    <span class="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
+                        Dars {{ lesson.order }}
+                    </span>
+                </div>
+                
+                <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ lesson.title }}</h1>
+                
+                <!-- Video Player -->
+                {% if lesson.video_url %}
+                    <div class="mb-6">
+                        <video controls class="w-full rounded-lg shadow-lg" poster="">
+                            <source src="{{ url_for('uploaded_file', filename=lesson.video_url) }}" type="video/mp4">
+                            <source src="{{ url_for('uploaded_file', filename=lesson.video_url) }}" type="video/webm">
+                            <source src="{{ url_for('uploaded_file', filename=lesson.video_url) }}" type="video/ogg">
+                            Brauzeringiz video playbackni qo'llab-quvvatlamaydi.
+                        </video>
+                    </div>
+                {% else %}
+                    <div class="bg-gray-100 rounded-lg p-12 text-center mb-6">
+                        <i class="fas fa-video text-gray-400 text-4xl mb-4"></i>
+                        <p class="text-gray-600">Bu darsda video mavjud emas</p>
+                    </div>
+                {% endif %}
+                
+                <!-- Lesson Content -->
+                <div class="prose prose-lg max-w-none">
+                    <div class="text-gray-800 leading-relaxed">
+                        {{ lesson.content|replace('\n', '<br>')|safe }}
+                    </div>
+                </div>
+            </div>
+            
+            <!-- Navigation -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    {% set prev_lesson = lessons[loop.index0 - 1] if loop.index0 > 0 else None %}
+                    {% set next_lesson = lessons[loop.index0 + 1] if loop.index0 < lessons|length - 1 else None %}
+                    
+                    {% for curr_lesson in lessons %}
+                        {% if curr_lesson.id == lesson.id %}
+                            {% if loop.index0 > 0 %}
+                                {% set prev_lesson = lessons[loop.index0 - 1] %}
+                            {% endif %}
+                            {% if loop.index0 < lessons|length - 1 %}
+                                {% set next_lesson = lessons[loop.index0 + 1] %}
+                            {% endif %}
+                        {% endif %}
+                    {% endfor %}
+                    
+                    <div>
+                        {% if prev_lesson %}
+                            <a href="{{ url_for('lesson_detail', lesson_id=prev_lesson.id) }}" 
+                               class="bg-gray-600 text-white px-6 py-3 rounded-lg hover:bg-gray-700 transition-colors">
+                                <i class="fas fa-arrow-left mr-2"></i>Oldingi dars
+                            </a>
+                        {% endif %}
+                    </div>
+                    
+                    <div class="text-center">
+                        <span class="text-sm text-gray-600">
+                            {% for curr_lesson in lessons %}
+                                {% if curr_lesson.id == lesson.id %}
+                                    {{ loop.index }} / {{ lessons|length }}
+                                {% endif %}
+                            {% endfor %}
+                        </span>
+                    </div>
+                    
+                    <div>
+                        {% if next_lesson %}
+                            <a href="{{ url_for('lesson_detail', lesson_id=next_lesson.id) }}" 
+                               class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                                Keyingi dars<i class="fas fa-arrow-right ml-2"></i>
+                            </a>
+                        {% else %}
+                            <a href="{{ url_for('course_detail', course_id=course.id) }}" 
+                               class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors">
+                                Kursni tugatish<i class="fas fa-check ml-2"></i>
+                            </a>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="lg:col-span-1">
+            <!-- Course Progress -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-chart-line mr-2"></i>Jarayon
+                </h3>
+                
+                <div class="mb-4">
+                    <div class="flex justify-between text-sm mb-2">
+                        <span>Tugallandi</span>
+                        <span>0%</span>
+                    </div>
+                    <div class="progress-bar">
+                        <div class="progress-bar-fill" style="width: 0%"></div>
+                    </div>
+                </div>
+                
+                <div class="text-sm text-gray-600">
+                    <p>
+                        {% for curr_lesson in lessons %}
+                            {% if curr_lesson.id == lesson.id %}
+                                {{ loop.index }}
+                            {% endif %}
+                        {% endfor %}
+                        / {{ lessons|length }} dars tugallandi
+                    </p>
+                </div>
+            </div>
+            
+            <!-- Lesson List -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-lg font-semibold text-gray-900 mb-4">
+                    <i class="fas fa-list mr-2"></i>Barcha darslar
+                </h3>
+                
+                <div class="space-y-2 max-h-96 overflow-y-auto">
+                    {% for curr_lesson in lessons %}
+                        <a href="{{ url_for('lesson_detail', lesson_id=curr_lesson.id) }}" 
+                           class="block p-3 rounded-lg hover:bg-gray-50 transition-colors 
+                                  {{ 'bg-blue-50 border-l-4 border-blue-500' if curr_lesson.id == lesson.id else 'border-l-4 border-transparent' }}">
+                            <div class="flex items-center space-x-3">
+                                <div class="w-8 h-8 rounded-full flex items-center justify-center
+                                            {{ 'bg-blue-100 text-blue-600' if curr_lesson.id == lesson.id else 'bg-gray-100 text-gray-600' }}">
+                                    <span class="text-sm font-semibold">{{ curr_lesson.order }}</span>
+                                </div>
+                                <div class="flex-1">
+                                    <h4 class="font-medium text-gray-900 text-sm">{{ curr_lesson.title }}</h4>
+                                    <p class="text-xs text-gray-500">
+                                        {% if curr_lesson.video_url %}
+                                            <i class="fas fa-video mr-1"></i>Video dars
+                                        {% else %}
+                                            <i class="fas fa-file-text mr-1"></i>Matn dars
+                                        {% endif %}
+                                    </p>
+                                </div>
+                                {% if curr_lesson.id == lesson.id %}
+                                    <i class="fas fa-play-circle text-blue-600"></i>
+                                {% endif %}
+                            </div>
+                        </a>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Video player events
+    const video = document.querySelector('video');
+    if (video) {
+        video.addEventListener('play', function() {
+            console.log('Video started playing');
+        });
+        
+        video.addEventListener('pause', function() {
+            console.log('Video paused');
+        });
+        
+        video.addEventListener('ended', function() {
+            console.log('Video ended');
+            // Auto-advance to next lesson
+            const nextLessonBtn = document.querySelector('a[href*="lesson_detail"]:last-child');
+            if (nextLessonBtn && nextLessonBtn.textContent.includes('Keyingi dars')) {
+                setTimeout(() => {
+                    if (confirm('Keyingi darsga o\'tishni xohlaysizmi?')) {
+                        window.location.href = nextLessonBtn.href;
+                    }
+                }, 2000);
+            }
+        });
+    }
+    
+    // Keyboard navigation
+    document.addEventListener('keydown', function(e) {
+        if (e.key === 'ArrowLeft') {
+            const prevBtn = document.querySelector('a[href*="lesson_detail"]:first-child');
+            if (prevBtn && prevBtn.textContent.includes('Oldingi dars')) {
+                window.location.href = prevBtn.href;
+            }
+        } else if (e.key === 'ArrowRight') {
+            const nextBtn = document.querySelector('a[href*="lesson_detail"]:last-child');
+            if (nextBtn && nextBtn.textContent.includes('Keyingi dars')) {
+                window.location.href = nextBtn.href;
+            }
+        } else if (e.key === ' ' && video) {
+            e.preventDefault();
+            if (video.paused) {
+                video.play();
+            } else {
+                video.pause();
+            }
+        }
+    });
+});
+</script>
+{% endblock %}

@@ -1,0 +1,245 @@
+{% extends "base.html" %}
+
+{% block title %}Savat - Online Ta'lim Platformasi{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="max-w-4xl mx-auto">
+        <div class="flex items-center justify-between mb-8">
+            <h1 class="text-3xl font-bold text-gray-900">
+                <i class="fas fa-shopping-cart mr-3"></i>Savat
+            </h1>
+            <a href="{{ url_for('index') }}" 
+               class="text-blue-600 hover:text-blue-800 flex items-center">
+                <i class="fas fa-arrow-left mr-2"></i>Xaridni davom ettirish
+            </a>
+        </div>
+        
+        {% if cart_items %}
+            <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+                <!-- Cart Items -->
+                <div class="lg:col-span-2">
+                    <div class="bg-white rounded-lg shadow-md">
+                        <div class="p-6 border-b">
+                            <h2 class="text-xl font-semibold text-gray-900">
+                                Tanlangan kurslar ({{ cart_items|length }})
+                            </h2>
+                        </div>
+                        
+                        <div class="divide-y divide-gray-200">
+                            {% for course in cart_items %}
+                                <div class="p-6">
+                                    <div class="flex items-center space-x-4">
+                                        <!-- Course Image -->
+                                        <div class="flex-shrink-0">
+                                            {% if course.image_url %}
+                                                <img src="{{ url_for('uploaded_file', filename=course.image_url) }}" 
+                                                     alt="{{ course.title }}" 
+                                                     class="w-20 h-20 object-cover rounded-lg">
+                                            {% else %}
+                                                <div class="w-20 h-20 bg-gradient-to-r from-blue-500 to-purple-500 rounded-lg flex items-center justify-center">
+                                                    <i class="fas fa-book text-white text-2xl"></i>
+                                                </div>
+                                            {% endif %}
+                                        </div>
+                                        
+                                        <!-- Course Details -->
+                                        <div class="flex-1">
+                                            <h3 class="text-lg font-semibold text-gray-900 mb-1">
+                                                <a href="{{ url_for('course_detail', course_id=course.id) }}" 
+                                                   class="hover:text-blue-600">
+                                                    {{ course.title }}
+                                                </a>
+                                            </h3>
+                                            
+                                            <div class="flex items-center space-x-4 text-sm text-gray-600 mb-2">
+                                                <span>
+                                                    <i class="fas fa-user mr-1"></i>{{ course.instructor.username }}
+                                                </span>
+                                                <span>
+                                                    <i class="fas fa-book mr-1"></i>{{ course.lessons|length }} dars
+                                                </span>
+                                                <span class="bg-blue-100 text-blue-800 px-2 py-1 rounded">
+                                                    {{ course.category }}
+                                                </span>
+                                            </div>
+                                            
+                                            <p class="text-gray-600 text-sm">
+                                                {{ course.description[:100] }}...
+                                            </p>
+                                        </div>
+                                        
+                                        <!-- Price and Actions -->
+                                        <div class="flex-shrink-0 text-right">
+                                            <div class="text-2xl font-bold text-green-600 mb-2">
+                                                {% if course.price == 0 %}
+                                                    Bepul
+                                                {% else %}
+                                                    {{ "{:,.0f}".format(course.price) }} so'm
+                                                {% endif %}
+                                            </div>
+                                            
+                                            <a href="{{ url_for('remove_from_cart', course_id=course.id) }}" 
+                                               class="text-red-600 hover:text-red-800 text-sm">
+                                                <i class="fas fa-trash mr-1"></i>O'chirish
+                                            </a>
+                                        </div>
+                                    </div>
+                                </div>
+                            {% endfor %}
+                        </div>
+                    </div>
+                </div>
+                
+                <!-- Order Summary -->
+                <div class="lg:col-span-1">
+                    <div class="bg-white rounded-lg shadow-md p-6 sticky top-4">
+                        <h3 class="text-xl font-semibold text-gray-900 mb-4">
+                            <i class="fas fa-receipt mr-2"></i>Buyurtma xulosasi
+                        </h3>
+                        
+                        <div class="space-y-3 mb-6">
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Kurslar soni:</span>
+                                <span class="font-semibold">{{ cart_items|length }}</span>
+                            </div>
+                            
+                            <div class="flex justify-between">
+                                <span class="text-gray-600">Oraliq jami:</span>
+                                <span class="font-semibold">{{ "{:,.0f}".format(total) }} so'm</span>
+                            </div>
+                            
+                            <div class="flex justify-between text-sm text-gray-600">
+                                <span>Chegirma:</span>
+                                <span>0 so'm</span>
+                            </div>
+                            
+                            <div class="flex justify-between text-sm text-gray-600">
+                                <span>Soliq:</span>
+                                <span>0 so'm</span>
+                            </div>
+                            
+                            <div class="border-t pt-3">
+                                <div class="flex justify-between text-lg font-bold">
+                                    <span>Jami:</span>
+                                    <span class="text-green-600">{{ "{:,.0f}".format(total) }} so'm</span>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <form action="{{ url_for('checkout') }}" method="POST" class="space-y-4">
+                            <button type="submit" 
+                                    class="w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold">
+                                <i class="fas fa-credit-card mr-2"></i>Sotib olish
+                            </button>
+                            
+                            <p class="text-xs text-gray-600 text-center">
+                                Sotib olish tugmasini bosish orqali siz 
+                                <a href="#" class="text-blue-600 hover:underline">foydalanish shartlari</a>
+                                ga rozilik bildirasiz.
+                            </p>
+                        </form>
+                        
+                        <!-- Payment Methods -->
+                        <div class="mt-6 pt-6 border-t">
+                            <h4 class="text-sm font-semibold text-gray-900 mb-3">To'lov usullari</h4>
+                            <div class="grid grid-cols-3 gap-2">
+                                <div class="bg-gray-100 p-2 rounded text-center">
+                                    <i class="fas fa-credit-card text-blue-600 text-lg"></i>
+                                    <div class="text-xs text-gray-600 mt-1">Karta</div>
+                                </div>
+                                <div class="bg-gray-100 p-2 rounded text-center">
+                                    <i class="fas fa-mobile-alt text-green-600 text-lg"></i>
+                                    <div class="text-xs text-gray-600 mt-1">Click</div>
+                                </div>
+                                <div class="bg-gray-100 p-2 rounded text-center">
+                                    <i class="fas fa-university text-purple-600 text-lg"></i>
+                                    <div class="text-xs text-gray-600 mt-1">Payme</div>
+                                </div>
+                            </div>
+                        </div>
+                        
+                        <!-- Guarantee -->
+                        <div class="mt-6 p-4 bg-green-50 rounded-lg">
+                            <div class="flex items-center space-x-2">
+                                <i class="fas fa-shield-alt text-green-600"></i>
+                                <div>
+                                    <div class="text-sm font-semibold text-green-800">30 kunlik kafolat</div>
+                                    <div class="text-xs text-green-600">Agar kurs yoqmasa, pulni qaytarib beramiz</div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% else %}
+            <!-- Empty Cart -->
+            <div class="text-center py-16">
+                <div class="max-w-md mx-auto">
+                    <i class="fas fa-shopping-cart text-gray-400 text-6xl mb-6"></i>
+                    <h2 class="text-2xl font-bold text-gray-900 mb-4">Savat bo'sh</h2>
+                    <p class="text-gray-600 mb-8">
+                        Hali hech qanday kurs tanlamagansiz. Bizning kurslarimizni ko'rib chiqing va 
+                        o'zingizga mos keladiganini tanlang.
+                    </p>
+                    
+                    <div class="space-y-4">
+                        <a href="{{ url_for('index') }}" 
+                           class="block w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors font-semibold">
+                            <i class="fas fa-search mr-2"></i>Kurslarni ko'rish
+                        </a>
+                        
+                        <a href="{{ url_for('dashboard') }}" 
+                           class="block w-full bg-gray-200 text-gray-800 py-3 rounded-lg hover:bg-gray-300 transition-colors font-semibold">
+                            <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                        </a>
+                    </div>
+                </div>
+            </div>
+        {% endif %}
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Update cart count in navigation
+    const cartCount = {{ cart_items|length }};
+    const cartCountElement = document.querySelector('.cart-count');
+    if (cartCountElement) {
+        cartCountElement.textContent = cartCount;
+        if (cartCount > 0) {
+            cartCountElement.classList.add('show');
+        } else {
+            cartCountElement.classList.remove('show');
+        }
+    }
+    
+    // Confirm before removing items
+    const removeLinks = document.querySelectorAll('a[href*="remove_from_cart"]');
+    removeLinks.forEach(link => {
+        link.addEventListener('click', function(e) {
+            if (!confirm('Bu kursni savatdan olib tashlashga ishonchingiz komilmi?')) {
+                e.preventDefault();
+            }
+        });
+    });
+    
+    // Checkout form validation
+    const checkoutForm = document.querySelector('form[action*="checkout"]');
+    if (checkoutForm) {
+        checkoutForm.addEventListener('submit', function(e) {
+            if ({{ cart_items|length }} === 0) {
+                e.preventDefault();
+                alert('Savatchangiz bo\'sh!');
+                return;
+            }
+            
+            // Show loading state
+            const submitBtn = checkoutForm.querySelector('button[type="submit"]');
+            submitBtn.disabled = true;
+            submitBtn.innerHTML = '<i class="fas fa-spinner fa-spin mr-2"></i>Ishlov berilmoqda...';
+        });
+    }
+});
+</script>
+{% endblock %}

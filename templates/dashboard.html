@@ -1,0 +1,248 @@
+{% extends "base.html" %}
+
+{% block title %}Dashboard - Online Ta'lim Platformasi{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="mb-8">
+        <h1 class="text-3xl font-bold text-gray-900 mb-2">
+            Xush kelibsiz, {{ current_user.username }}!
+        </h1>
+        <p class="text-gray-600">
+            {% if current_user.role == 'instructor' %}
+                O'qituvchi paneliga xush kelibsiz
+            {% else %}
+                Talaba paneliga xush kelibsiz
+            {% endif %}
+        </p>
+    </div>
+
+    {% if current_user.role == 'instructor' %}
+        <!-- Instructor Dashboard -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Mening kurslarim</p>
+                        <p class="text-2xl font-bold text-blue-600">{{ my_courses|length }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-book text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Jami talabalar</p>
+                        <p class="text-2xl font-bold text-green-600">{{ total_students }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-users text-green-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Daromad</p>
+                        <p class="text-2xl font-bold text-purple-600">0 so'm</p>
+                    </div>
+                    <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-chart-line text-purple-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quick Actions -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">Tez amallar</h2>
+            <div class="flex flex-wrap gap-4">
+                <a href="{{ url_for('create_course') }}" 
+                   class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                    <i class="fas fa-plus mr-2"></i>Yangi kurs yaratish
+                </a>
+                <a href="#" 
+                   class="bg-green-600 text-white px-6 py-3 rounded-lg hover:bg-green-700 transition-colors">
+                    <i class="fas fa-chart-bar mr-2"></i>Statistika
+                </a>
+                <a href="#" 
+                   class="bg-purple-600 text-white px-6 py-3 rounded-lg hover:bg-purple-700 transition-colors">
+                    <i class="fas fa-cog mr-2"></i>Sozlamalar
+                </a>
+            </div>
+        </div>
+
+        <!-- My Courses -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">Mening kurslarim</h2>
+            
+            {% if my_courses %}
+                <div class="overflow-x-auto">
+                    <table class="w-full table-auto">
+                        <thead>
+                            <tr class="border-b">
+                                <th class="text-left py-2">Kurs nomi</th>
+                                <th class="text-left py-2">Kategoriya</th>
+                                <th class="text-left py-2">Narxi</th>
+                                <th class="text-left py-2">Yaratilgan</th>
+                                <th class="text-left py-2">Amallar</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for course in my_courses %}
+                                <tr class="border-b hover:bg-gray-50">
+                                    <td class="py-3">
+                                        <div class="font-medium">{{ course.title }}</div>
+                                        <div class="text-sm text-gray-600">{{ course.lessons|length }} dars</div>
+                                    </td>
+                                    <td class="py-3">
+                                        <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">
+                                            {{ course.category }}
+                                        </span>
+                                    </td>
+                                    <td class="py-3">
+                                        {% if course.price == 0 %}
+                                            <span class="text-green-600 font-semibold">Bepul</span>
+                                        {% else %}
+                                            <span class="font-semibold">{{ course.price }} so'm</span>
+                                        {% endif %}
+                                    </td>
+                                    <td class="py-3 text-sm text-gray-600">
+                                        {{ course.created_at.strftime('%d.%m.%Y') }}
+                                    </td>
+                                    <td class="py-3">
+                                        <div class="flex space-x-2">
+                                            <a href="{{ url_for('course_detail', course_id=course.id) }}" 
+                                               class="text-blue-600 hover:text-blue-800">
+                                                <i class="fas fa-eye"></i>
+                                            </a>
+                                            <a href="#" 
+                                               class="text-green-600 hover:text-green-800">
+                                                <i class="fas fa-edit"></i>
+                                            </a>
+                                            <a href="#" 
+                                               class="text-red-600 hover:text-red-800">
+                                                <i class="fas fa-trash"></i>
+                                            </a>
+                                        </div>
+                                    </td>
+                                </tr>
+                            {% endfor %}
+                        </tbody>
+                    </table>
+                </div>
+            {% else %}
+                <div class="text-center py-8">
+                    <i class="fas fa-book-open text-gray-400 text-4xl mb-4"></i>
+                    <p class="text-gray-600 mb-4">Hali kurslaringiz yo'q</p>
+                    <a href="{{ url_for('create_course') }}" 
+                       class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-plus mr-2"></i>Birinchi kursni yaratish
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+    {% else %}
+        <!-- Student Dashboard -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Yozilgan kurslar</p>
+                        <p class="text-2xl font-bold text-blue-600">{{ enrolled_courses|length }}</p>
+                    </div>
+                    <div class="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-book text-blue-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Tugallangan</p>
+                        <p class="text-2xl font-bold text-green-600">0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-green-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-check-circle text-green-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+            
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <div class="flex items-center justify-between">
+                    <div>
+                        <p class="text-sm font-medium text-gray-600">Sertifikatlar</p>
+                        <p class="text-2xl font-bold text-purple-600">0</p>
+                    </div>
+                    <div class="w-12 h-12 bg-purple-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-certificate text-purple-600 text-xl"></i>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Continue Learning -->
+        <div class="bg-white rounded-lg shadow-md p-6 mb-8">
+            <h2 class="text-xl font-semibold mb-4">O'rganishni davom ettiring</h2>
+            
+            {% if enrolled_courses %}
+                <div class="course-grid">
+                    {% for course in enrolled_courses %}
+                        <div class="border rounded-lg p-4 hover:shadow-md transition-shadow">
+                            <h3 class="font-semibold mb-2">{{ course.title }}</h3>
+                            <p class="text-sm text-gray-600 mb-3">{{ course.category }}</p>
+                            
+                            <div class="mb-3">
+                                <div class="flex justify-between text-sm mb-1">
+                                    <span>Jarayon</span>
+                                    <span>0%</span>
+                                </div>
+                                <div class="progress-bar">
+                                    <div class="progress-bar-fill" style="width: 0%"></div>
+                                </div>
+                            </div>
+                            
+                            <a href="{{ url_for('course_detail', course_id=course.id) }}" 
+                               class="block w-full text-center bg-blue-600 text-white py-2 rounded hover:bg-blue-700 transition-colors">
+                                Davom ettirish
+                            </a>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% else %}
+                <div class="text-center py-8">
+                    <i class="fas fa-book-reader text-gray-400 text-4xl mb-4"></i>
+                    <p class="text-gray-600 mb-4">Hali kursga yozilmagansiz</p>
+                    <a href="{{ url_for('index') }}" 
+                       class="bg-blue-600 text-white px-6 py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                        <i class="fas fa-search mr-2"></i>Kurslarni ko'rish
+                    </a>
+                </div>
+            {% endif %}
+        </div>
+
+        <!-- Recent Activity -->
+        <div class="bg-white rounded-lg shadow-md p-6">
+            <h2 class="text-xl font-semibold mb-4">So'nggi faoliyat</h2>
+            
+            <div class="space-y-4">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                        <i class="fas fa-user-plus text-blue-600 text-sm"></i>
+                    </div>
+                    <div>
+                        <p class="font-medium">Platformaga qo'shildingiz</p>
+                        <p class="text-sm text-gray-600">Bugun</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    {% endif %}
+</div>
+{% endblock %}

@@ -1,0 +1,317 @@
+{% extends "base.html" %}
+
+{% block title %}{{ course.title }} - Online Ta'lim Platformasi{% endblock %}
+
+{% block content %}
+<div class="container mx-auto px-4 py-8">
+    <div class="grid grid-cols-1 lg:grid-cols-3 gap-8">
+        <!-- Main Course Content -->
+        <div class="lg:col-span-2">
+            <!-- Course Header -->
+            <div class="bg-white rounded-lg shadow-md overflow-hidden mb-6">
+                {% if course.image_url %}
+                    <img src="{{ url_for('uploaded_file', filename=course.image_url) }}" 
+                         alt="{{ course.title }}" 
+                         class="w-full h-64 object-cover">
+                {% else %}
+                    <div class="w-full h-64 bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
+                        <i class="fas fa-book-open text-white text-6xl"></i>
+                    </div>
+                {% endif %}
+                
+                <div class="p-6">
+                    <div class="flex items-center justify-between mb-4">
+                        <span class="bg-blue-100 text-blue-800 text-sm px-3 py-1 rounded-full">
+                            {{ course.category }}
+                        </span>
+                        <div class="flex items-center space-x-4">
+                            <span class="text-sm text-gray-600">
+                                <i class="fas fa-user mr-1"></i>{{ course.instructor.username }}
+                            </span>
+                            <span class="text-sm text-gray-600">
+                                <i class="fas fa-users mr-1"></i>{{ enrollment_count }} talaba
+                            </span>
+                        </div>
+                    </div>
+                    
+                    <h1 class="text-3xl font-bold text-gray-900 mb-4">{{ course.title }}</h1>
+                    
+                    <div class="flex items-center mb-4">
+                        <div class="flex items-center mr-4">
+                            <div class="rating-stars flex">
+                                {% for i in range(1, 6) %}
+                                    <i class="fas fa-star {{ 'text-yellow-400' if i <= avg_rating else 'text-gray-300' }}"></i>
+                                {% endfor %}
+                            </div>
+                            <span class="ml-2 text-sm text-gray-600">
+                                {{ "%.1f"|format(avg_rating) }} ({{ total_ratings }} baho)
+                            </span>
+                        </div>
+                        <span class="text-sm text-gray-600">
+                            <i class="fas fa-clock mr-1"></i>{{ lessons|length }} dars
+                        </span>
+                    </div>
+                    
+                    <p class="text-gray-700 text-lg leading-relaxed">{{ course.description }}</p>
+                </div>
+            </div>
+            
+            <!-- Course Lessons -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">
+                    <i class="fas fa-list mr-2"></i>Kurs dasturi
+                </h2>
+                
+                {% if lessons %}
+                    <div class="space-y-4">
+                        {% for lesson in lessons %}
+                            <div class="border rounded-lg p-4 hover:bg-gray-50 transition-colors">
+                                <div class="flex items-center justify-between">
+                                    <div class="flex items-center space-x-3">
+                                        <div class="w-10 h-10 bg-blue-100 rounded-full flex items-center justify-center">
+                                            <span class="text-blue-600 font-semibold">{{ lesson.order }}</span>
+                                        </div>
+                                        <div>
+                                            <h3 class="font-semibold text-gray-900">{{ lesson.title }}</h3>
+                                            <p class="text-sm text-gray-600">
+                                                {% if lesson.video_url %}
+                                                    <i class="fas fa-video mr-1"></i>Video dars
+                                                {% else %}
+                                                    <i class="fas fa-file-text mr-1"></i>Matn dars
+                                                {% endif %}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    
+                                    {% if current_user.is_authenticated and (is_enrolled or current_user.id == course.instructor_id) %}
+                                        <a href="{{ url_for('lesson_detail', lesson_id=lesson.id) }}" 
+                                           class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                            <i class="fas fa-play mr-1"></i>Boshlash
+                                        </a>
+                                    {% else %}
+                                        <div class="text-gray-400">
+                                            <i class="fas fa-lock mr-1"></i>Yopiq
+                                        </div>
+                                    {% endif %}
+                                </div>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-book-open text-gray-400 text-4xl mb-4"></i>
+                        <p class="text-gray-600">Hali darslar qo'shilmagan</p>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Comments Section -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h2 class="text-2xl font-bold text-gray-900 mb-4">
+                    <i class="fas fa-comments mr-2"></i>Izohlar
+                </h2>
+                
+                {% if current_user.is_authenticated %}
+                    <form action="{{ url_for('add_comment', course_id=course.id) }}" method="POST" class="mb-6">
+                        <div class="mb-4">
+                            <textarea name="content" rows="3" placeholder="Izoh qoldiring..." required
+                                      class="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"></textarea>
+                        </div>
+                        <button type="submit" 
+                                class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-paper-plane mr-2"></i>Izoh qo'shish
+                        </button>
+                    </form>
+                {% endif %}
+                
+                {% if comments %}
+                    <div class="space-y-4">
+                        {% for comment, username in comments %}
+                            <div class="border-l-4 border-blue-500 pl-4 py-2">
+                                <div class="flex items-center justify-between mb-2">
+                                    <div class="flex items-center space-x-2">
+                                        <div class="w-8 h-8 bg-blue-100 rounded-full flex items-center justify-center">
+                                            <i class="fas fa-user text-blue-600"></i>
+                                        </div>
+                                        <span class="font-semibold text-gray-900">{{ username }}</span>
+                                    </div>
+                                    <span class="text-sm text-gray-500">{{ comment.created_at.strftime('%d.%m.%Y %H:%M') }}</span>
+                                </div>
+                                <p class="text-gray-700">{{ comment.content }}</p>
+                            </div>
+                        {% endfor %}
+                    </div>
+                {% else %}
+                    <div class="text-center py-8">
+                        <i class="fas fa-comment-slash text-gray-400 text-4xl mb-4"></i>
+                        <p class="text-gray-600">Hali izohlar yo'q</p>
+                    </div>
+                {% endif %}
+            </div>
+        </div>
+        
+        <!-- Sidebar -->
+        <div class="lg:col-span-1">
+            <!-- Course Price & Enrollment -->
+            <div class="bg-white rounded-lg shadow-md p-6 mb-6 sticky top-4">
+                <div class="text-center mb-6">
+                    <div class="text-3xl font-bold text-green-600 mb-2">
+                        {% if course.price == 0 %}
+                            Bepul
+                        {% else %}
+                            {{ course.price }} so'm
+                        {% endif %}
+                    </div>
+                    <p class="text-gray-600">Bir martalik to'lov</p>
+                </div>
+                
+                {% if current_user.is_authenticated %}
+                    {% if current_user.id == course.instructor_id %}
+                        <div class="text-center">
+                            <div class="bg-blue-100 text-blue-800 px-4 py-2 rounded-lg mb-4">
+                                <i class="fas fa-user-tie mr-2"></i>Siz bu kursning o'qituvchisisiz
+                            </div>
+                            <a href="{{ url_for('dashboard') }}" 
+                               class="block w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-tachometer-alt mr-2"></i>Dashboard
+                            </a>
+                        </div>
+                    {% elif is_enrolled %}
+                        <div class="text-center">
+                            <div class="bg-green-100 text-green-800 px-4 py-2 rounded-lg mb-4">
+                                <i class="fas fa-check-circle mr-2"></i>Siz bu kursga yozilgansiz
+                            </div>
+                            {% if lessons %}
+                                <a href="{{ url_for('lesson_detail', lesson_id=lessons[0].id) }}" 
+                                   class="block w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors">
+                                    <i class="fas fa-play mr-2"></i>Darsni boshlash
+                                </a>
+                            {% endif %}
+                        </div>
+                    {% else %}
+                        <div class="space-y-4">
+                            {% if course.price == 0 %}
+                                <a href="{{ url_for('enroll_course', course_id=course.id) }}" 
+                                   class="block w-full bg-green-600 text-white py-3 rounded-lg hover:bg-green-700 transition-colors text-center">
+                                    <i class="fas fa-user-plus mr-2"></i>Bepul yozilish
+                                </a>
+                            {% else %}
+                                <a href="{{ url_for('add_to_cart', course_id=course.id) }}" 
+                                   class="block w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors text-center">
+                                    <i class="fas fa-shopping-cart mr-2"></i>Savatga qo'shish
+                                </a>
+                            {% endif %}
+                        </div>
+                    {% endif %}
+                {% else %}
+                    <div class="text-center">
+                        <p class="text-gray-600 mb-4">Kursni sotib olish uchun tizimga kiring</p>
+                        <a href="{{ url_for('login') }}" 
+                           class="block w-full bg-blue-600 text-white py-3 rounded-lg hover:bg-blue-700 transition-colors">
+                            <i class="fas fa-sign-in-alt mr-2"></i>Kirish
+                        </a>
+                    </div>
+                {% endif %}
+                
+                <!-- Rating Section -->
+                {% if current_user.is_authenticated and is_enrolled %}
+                    <div class="mt-6 border-t pt-6">
+                        <h3 class="font-semibold text-gray-900 mb-3">Kursga baho bering</h3>
+                        <form action="{{ url_for('add_rating', course_id=course.id) }}" method="POST" class="rating-form">
+                            <div class="rating-stars flex justify-center mb-3">
+                                {% for i in range(1, 6) %}
+                                    <button type="button" class="star text-2xl text-gray-300 hover:text-yellow-400 transition-colors" 
+                                            data-rating="{{ i }}">
+                                        <i class="fas fa-star"></i>
+                                    </button>
+                                {% endfor %}
+                            </div>
+                            <input type="hidden" name="rating" value="5">
+                            <button type="submit" 
+                                    class="w-full bg-yellow-500 text-white py-2 rounded-lg hover:bg-yellow-600 transition-colors">
+                                <i class="fas fa-star mr-2"></i>Baho berish
+                            </button>
+                        </form>
+                    </div>
+                {% endif %}
+            </div>
+            
+            <!-- Course Info -->
+            <div class="bg-white rounded-lg shadow-md p-6">
+                <h3 class="text-xl font-bold text-gray-900 mb-4">Kurs haqida</h3>
+                <div class="space-y-3">
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">
+                            <i class="fas fa-user mr-2"></i>O'qituvchi
+                        </span>
+                        <span class="font-semibold">{{ course.instructor.username }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">
+                            <i class="fas fa-users mr-2"></i>Talabalar
+                        </span>
+                        <span class="font-semibold">{{ enrollment_count }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">
+                            <i class="fas fa-book mr-2"></i>Darslar
+                        </span>
+                        <span class="font-semibold">{{ lessons|length }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">
+                            <i class="fas fa-calendar mr-2"></i>Yaratilgan
+                        </span>
+                        <span class="font-semibold">{{ course.created_at.strftime('%d.%m.%Y') }}</span>
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <span class="text-gray-600">
+                            <i class="fas fa-star mr-2"></i>Reyting
+                        </span>
+                        <span class="font-semibold">{{ "%.1f"|format(avg_rating) }}/5</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    // Rating stars interaction
+    const ratingStars = document.querySelectorAll('.rating-stars .star');
+    const ratingInput = document.querySelector('input[name="rating"]');
+    
+    ratingStars.forEach((star, index) => {
+        star.addEventListener('click', function(e) {
+            e.preventDefault();
+            const rating = index + 1;
+            ratingInput.value = rating;
+            updateStars(rating);
+        });
+        
+        star.addEventListener('mouseenter', function() {
+            const rating = index + 1;
+            updateStars(rating);
+        });
+    });
+    
+    document.querySelector('.rating-form')?.addEventListener('mouseleave', function() {
+        const currentRating = parseInt(ratingInput.value);
+        updateStars(currentRating);
+    });
+    
+    function updateStars(rating) {
+        ratingStars.forEach((star, index) => {
+            if (index < rating) {
+                star.classList.remove('text-gray-300');
+                star.classList.add('text-yellow-400');
+            } else {
+                star.classList.remove('text-yellow-400');
+                star.classList.add('text-gray-300');
+            }
+        });
+    }
+});
+</script>
+{% endblock %}

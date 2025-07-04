@@ -1,0 +1,254 @@
+{% extends "base.html" %}
+
+{% block title %}Bosh sahifa - Online Ta'lim Platformasi{% endblock %}
+
+{% block content %}
+<!-- Hero Section -->
+<section class="bg-gradient-to-r from-blue-600 to-purple-600 text-white py-20">
+    <div class="container mx-auto px-4">
+        <div class="text-center">
+            <h1 class="text-4xl md:text-6xl font-bold mb-6 animate-fade-in">
+                Zamonaviy Online Ta'lim
+            </h1>
+            <p class="text-xl md:text-2xl mb-8 animate-fade-in">
+                Professional o'qituvchilar bilan sifatli ta'lim oling
+            </p>
+            <div class="flex flex-col sm:flex-row justify-center gap-4 animate-fade-in">
+                <a href="{{ url_for('register') }}" class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+                    <i class="fas fa-rocket mr-2"></i>Boshlash
+                </a>
+                <a href="#courses" class="border-2 border-white text-white px-8 py-3 rounded-lg font-semibold hover:bg-white hover:text-blue-600 transition-colors">
+                    <i class="fas fa-play mr-2"></i>Kurslarni ko'rish
+                </a>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Stats Section -->
+<section class="py-16 bg-white">
+    <div class="container mx-auto px-4">
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+            <div class="animate-on-scroll">
+                <div class="text-4xl font-bold text-blue-600 mb-2">{{ stats.total_courses }}</div>
+                <div class="text-gray-600">Kurslar soni</div>
+            </div>
+            <div class="animate-on-scroll">
+                <div class="text-4xl font-bold text-green-600 mb-2">{{ stats.total_students }}</div>
+                <div class="text-gray-600">Talabalar</div>
+            </div>
+            <div class="animate-on-scroll">
+                <div class="text-4xl font-bold text-purple-600 mb-2">{{ stats.total_instructors }}</div>
+                <div class="text-gray-600">O'qituvchilar</div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Featured Courses Section -->
+{% if featured_courses %}
+<section class="py-16 bg-gray-50" id="courses">
+    <div class="container mx-auto px-4">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">Tavsiya etilgan kurslar</h2>
+            <p class="text-gray-600">Eng mashhur va sifatli kurslarimiz</p>
+        </div>
+        
+        <div class="course-grid">
+            {% for course in featured_courses %}
+                <div class="bg-white rounded-lg shadow-md overflow-hidden card-hover animate-on-scroll">
+                    {% if course.image_url %}
+                        <img src="{{ url_for('uploaded_file', filename=course.image_url) }}" 
+                             alt="{{ course.title }}" 
+                             class="w-full h-48 object-cover">
+                    {% else %}
+                        <div class="w-full h-48 bg-gradient-to-r from-blue-500 to-purple-500 flex items-center justify-center">
+                            <i class="fas fa-book-open text-white text-4xl"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="bg-blue-100 text-blue-800 text-xs px-2 py-1 rounded">{{ course.category }}</span>
+                            <span class="text-sm text-gray-500">{{ course.instructor.username }}</span>
+                        </div>
+                        
+                        <h3 class="text-xl font-semibold mb-2">{{ course.title }}</h3>
+                        <p class="text-gray-600 mb-4">{{ course.description[:100] }}...</p>
+                        
+                        <div class="flex items-center justify-between">
+                            <span class="text-2xl font-bold text-green-600">
+                                {% if course.price == 0 %}
+                                    Bepul
+                                {% else %}
+                                    {{ course.price }} so'm
+                                {% endif %}
+                            </span>
+                            <a href="{{ url_for('course_detail', course_id=course.id) }}" 
+                               class="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors">
+                                <i class="fas fa-arrow-right mr-1"></i>Ko'rish
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Popular Courses Section -->
+{% if popular_courses %}
+<section class="py-16 bg-white">
+    <div class="container mx-auto px-4">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">Mashhur kurslar</h2>
+            <p class="text-gray-600">Eng ko'p talabaga ega kurslar</p>
+        </div>
+        
+        <div class="course-grid">
+            {% for course_data in popular_courses %}
+                {% set course = course_data[0] %}
+                {% set student_count = course_data[1] %}
+                <div class="bg-white rounded-lg shadow-md overflow-hidden card-hover animate-on-scroll">
+                    {% if course.image_url %}
+                        <img src="{{ url_for('uploaded_file', filename=course.image_url) }}" 
+                             alt="{{ course.title }}" 
+                             class="w-full h-48 object-cover">
+                    {% else %}
+                        <div class="w-full h-48 bg-gradient-to-r from-green-500 to-teal-500 flex items-center justify-center">
+                            <i class="fas fa-chart-line text-white text-4xl"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="bg-green-100 text-green-800 text-xs px-2 py-1 rounded">{{ course.category }}</span>
+                            <span class="text-sm text-gray-500">
+                                <i class="fas fa-users mr-1"></i>{{ student_count }} talaba
+                            </span>
+                        </div>
+                        
+                        <h3 class="text-xl font-semibold mb-2">{{ course.title }}</h3>
+                        <p class="text-gray-600 mb-4">{{ course.description[:100] }}...</p>
+                        
+                        <div class="flex items-center justify-between">
+                            <span class="text-2xl font-bold text-green-600">
+                                {% if course.price == 0 %}
+                                    Bepul
+                                {% else %}
+                                    {{ course.price }} so'm
+                                {% endif %}
+                            </span>
+                            <a href="{{ url_for('course_detail', course_id=course.id) }}" 
+                               class="bg-green-600 text-white px-4 py-2 rounded-lg hover:bg-green-700 transition-colors">
+                                <i class="fas fa-arrow-right mr-1"></i>Ko'rish
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Recent Courses Section -->
+{% if recent_courses %}
+<section class="py-16 bg-gray-50">
+    <div class="container mx-auto px-4">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">Yangi kurslar</h2>
+            <p class="text-gray-600">So'nggi qo'shilgan kurslar</p>
+        </div>
+        
+        <div class="course-grid">
+            {% for course in recent_courses %}
+                <div class="bg-white rounded-lg shadow-md overflow-hidden card-hover animate-on-scroll">
+                    {% if course.image_url %}
+                        <img src="{{ url_for('uploaded_file', filename=course.image_url) }}" 
+                             alt="{{ course.title }}" 
+                             class="w-full h-48 object-cover">
+                    {% else %}
+                        <div class="w-full h-48 bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
+                            <i class="fas fa-star text-white text-4xl"></i>
+                        </div>
+                    {% endif %}
+                    
+                    <div class="p-6">
+                        <div class="flex items-center justify-between mb-2">
+                            <span class="bg-purple-100 text-purple-800 text-xs px-2 py-1 rounded">{{ course.category }}</span>
+                            <span class="text-sm text-gray-500">{{ course.created_at.strftime('%d.%m.%Y') }}</span>
+                        </div>
+                        
+                        <h3 class="text-xl font-semibold mb-2">{{ course.title }}</h3>
+                        <p class="text-gray-600 mb-4">{{ course.description[:100] }}...</p>
+                        
+                        <div class="flex items-center justify-between">
+                            <span class="text-2xl font-bold text-green-600">
+                                {% if course.price == 0 %}
+                                    Bepul
+                                {% else %}
+                                    {{ course.price }} so'm
+                                {% endif %}
+                            </span>
+                            <a href="{{ url_for('course_detail', course_id=course.id) }}" 
+                               class="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors">
+                                <i class="fas fa-arrow-right mr-1"></i>Ko'rish
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            {% endfor %}
+        </div>
+    </div>
+</section>
+{% endif %}
+
+<!-- Features Section -->
+<section class="py-16 bg-white">
+    <div class="container mx-auto px-4">
+        <div class="text-center mb-12">
+            <h2 class="text-3xl font-bold text-gray-800 mb-4">Nima uchun bizni tanlaysiz?</h2>
+            <p class="text-gray-600">Platformamizning asosiy afzalliklari</p>
+        </div>
+        
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-8">
+            <div class="text-center animate-on-scroll">
+                <div class="w-16 h-16 bg-blue-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-play text-blue-600 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Video darslar</h3>
+                <p class="text-gray-600">Yuqori sifatli video darslar orqali o'rganing</p>
+            </div>
+            
+            <div class="text-center animate-on-scroll">
+                <div class="w-16 h-16 bg-green-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-certificate text-green-600 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Sertifikat</h3>
+                <p class="text-gray-600">Kursni tugatganingizda sertifikat oling</p>
+            </div>
+            
+            <div class="text-center animate-on-scroll">
+                <div class="w-16 h-16 bg-purple-100 rounded-full flex items-center justify-center mx-auto mb-4">
+                    <i class="fas fa-users text-purple-600 text-2xl"></i>
+                </div>
+                <h3 class="text-xl font-semibold mb-2">Hamjamiyat</h3>
+                <p class="text-gray-600">Boshqa talabalar bilan muloqot qiling</p>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- CTA Section -->
+<section class="py-16 bg-gradient-to-r from-blue-600 to-purple-600 text-white">
+    <div class="container mx-auto px-4 text-center">
+        <h2 class="text-3xl font-bold mb-4">Bugun biz bilan o'rganishni boshlang!</h2>
+        <p class="text-xl mb-8">Minglab kurslar va professional o'qituvchilar sizni kutmoqda</p>
+        <a href="{{ url_for('register') }}" class="bg-white text-blue-600 px-8 py-3 rounded-lg font-semibold hover:bg-gray-100 transition-colors">
+            <i class="fas fa-rocket mr-2"></i>Ro'yxatdan o'tish
+        </a>
+    </div>
+</section>
+{% endblock %}
